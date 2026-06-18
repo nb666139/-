@@ -1,0 +1,1120 @@
+[
+  {
+    "entry_id": "6983a33b5435",
+    "scene_features": [
+      0.3927461504936218,
+      0.1941480040550232,
+      0.44586578011512756,
+      0.2908158302307129,
+      0.160365030169487,
+      0.7063779830932617,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "dispatch_instruction": "生成小时12:00的调度方案，确保功率平衡和N-1安全。",
+    "dispatch_plan": {
+      "summary": "Demo模式：经济调度方案，总负荷278.0MW，新能源出力118.1MW，净负荷168.3MW",
+      "unit_commitment": {
+        "G1": {
+          "status": "on",
+          "output_mw": 40.18,
+          "capacity_mw": 80.0
+        },
+        "G2": {
+          "status": "on",
+          "output_mw": 30.58,
+          "capacity_mw": 80.0
+        },
+        "G5": {
+          "status": "on",
+          "output_mw": 8.73,
+          "capacity_mw": 30.0
+        },
+        "G4": {
+          "status": "on",
+          "output_mw": 14.57,
+          "capacity_mw": 55.0
+        },
+        "G3": {
+          "status": "on",
+          "output_mw": 11.07,
+          "capacity_mw": 50.0
+        },
+        "G6": {
+          "status": "on",
+          "output_mw": 36.0,
+          "capacity_mw": 40.0
+        }
+      },
+      "topology_switches": {
+        "L1": "closed",
+        "L2": "closed",
+        "L3": "closed",
+        "L4": "closed",
+        "L5": "closed",
+        "L6": "closed",
+        "L7": "closed",
+        "L8": "closed",
+        "L9": "closed",
+        "L10": "closed",
+        "L11": "closed",
+        "L12": "closed",
+        "L13": "closed",
+        "L14": "closed",
+        "L15": "closed",
+        "L16": "closed",
+        "L17": "closed",
+        "L18": "closed",
+        "L19": "closed",
+        "L20": "closed",
+        "L21": "closed",
+        "L22": "closed",
+        "L23": "closed",
+        "L24": "closed",
+        "L25": "closed",
+        "L26": "closed",
+        "L27": "closed",
+        "L28": "closed",
+        "L29": "closed",
+        "L30": "closed",
+        "L31": "closed",
+        "L32": "closed",
+        "L33": "closed",
+        "L34": "closed",
+        "L35": "closed",
+        "L36": "closed",
+        "L37": "closed",
+        "L38": "closed",
+        "L39": "closed",
+        "L40": "closed",
+        "L41": "closed"
+      },
+      "renewable_curtailment": {
+        "wind_mw": 0.0,
+        "solar_mw": 0.0
+      },
+      "constraints_check": {
+        "power_balance": true,
+        "voltage_ok": true,
+        "line_loading_ok": true
+      },
+      "expected_cost": 3985.35,
+      "metadata": {
+        "mode": "demo",
+        "total_load": 278.0,
+        "renewable_output": 118.09,
+        "net_load": 168.25000000000003
+      }
+    },
+    "validation_result": {
+      "safety_score": 73.03,
+      "passed": false,
+      "has_violations": true,
+      "details": {
+        "voltage": {
+          "score": 100.0,
+          "violations": [],
+          "weight": 0.3
+        },
+        "line_loading": {
+          "score": 100.0,
+          "violations": [],
+          "weight": 0.25
+        },
+        "n1_security": {
+          "score": 57.45,
+          "results": [
+            {
+              "contingency_type": "line_outage",
+              "element": "L1",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L2",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L3",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L4",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L5",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L6",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L7",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L8",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L9",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L10",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L11",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L12",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L13",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L14",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L15",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L16",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L17",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L18",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L19",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L20",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L21",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L22",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L23",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L24",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L25",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L26",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L27",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L28",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L29",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L30",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L31",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L32",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L33",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L34",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L35",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L36",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L37",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L38",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L39",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L40",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L41",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "generator_outage",
+              "element": "G1",
+              "lost_output_mw": 40.18,
+              "remaining_capacity_mw": 154.05,
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "generator_outage",
+              "element": "G2",
+              "lost_output_mw": 30.58,
+              "remaining_capacity_mw": 144.45000000000002,
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "generator_outage",
+              "element": "G5",
+              "lost_output_mw": 8.73,
+              "remaining_capacity_mw": 172.60000000000002,
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "generator_outage",
+              "element": "G4",
+              "lost_output_mw": 14.57,
+              "remaining_capacity_mw": 153.44,
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "generator_outage",
+              "element": "G3",
+              "lost_output_mw": 11.07,
+              "remaining_capacity_mw": 154.94,
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "generator_outage",
+              "element": "G6",
+              "lost_output_mw": 36.0,
+              "remaining_capacity_mw": 189.87,
+              "violation": false,
+              "severity": "low"
+            }
+          ],
+          "weight": 0.3
+        },
+        "frequency": {
+          "score": 5.29,
+          "details": {
+            "total_supply_mw": 259.22,
+            "total_demand_mw": 286.34,
+            "power_imbalance_mw": -27.12,
+            "imbalance_pct": 9.47,
+            "estimated_freq_deviation_hz": 0.947,
+            "stable": false
+          },
+          "weight": 0.15
+        }
+      }
+    },
+    "safety_score": 73.03,
+    "is_success": false,
+    "weight": 1.0,
+    "usage_count": 2,
+    "timestamp": 1781621906.225161
+  },
+  {
+    "entry_id": "14470fc753d2",
+    "scene_features": [
+      0.38241297006607056,
+      0.20329198241233826,
+      0.33053794503211975,
+      0.40593764185905457,
+      0.15078189969062805,
+      0.7180924415588379,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "dispatch_instruction": "【紧急】线路 L37 发生永久性故障跳闸！请重新规划调度方案，确保系统在N-1状态下安全运行。",
+    "dispatch_plan": {
+      "summary": "Demo模式：经济调度方案，总负荷266.3MW，新能源出力102.7MW，净负荷171.6MW",
+      "unit_commitment": {
+        "G1": {
+          "status": "on",
+          "output_mw": 40.98,
+          "capacity_mw": 80.0
+        },
+        "G2": {
+          "status": "on",
+          "output_mw": 31.19,
+          "capacity_mw": 80.0
+        },
+        "G5": {
+          "status": "on",
+          "output_mw": 8.9,
+          "capacity_mw": 30.0
+        },
+        "G4": {
+          "status": "on",
+          "output_mw": 14.86,
+          "capacity_mw": 55.0
+        },
+        "G3": {
+          "status": "on",
+          "output_mw": 11.29,
+          "capacity_mw": 50.0
+        },
+        "G6": {
+          "status": "on",
+          "output_mw": 36.0,
+          "capacity_mw": 40.0
+        }
+      },
+      "topology_switches": {
+        "L1": "closed",
+        "L2": "closed",
+        "L3": "closed",
+        "L4": "closed",
+        "L5": "closed",
+        "L6": "closed",
+        "L7": "closed",
+        "L8": "closed",
+        "L9": "closed",
+        "L10": "closed",
+        "L11": "closed",
+        "L12": "closed",
+        "L13": "closed",
+        "L14": "closed",
+        "L15": "closed",
+        "L16": "closed",
+        "L17": "closed",
+        "L18": "closed",
+        "L19": "closed",
+        "L20": "closed",
+        "L21": "closed",
+        "L22": "closed",
+        "L23": "closed",
+        "L24": "closed",
+        "L25": "closed",
+        "L26": "closed",
+        "L27": "closed",
+        "L28": "closed",
+        "L29": "closed",
+        "L30": "closed",
+        "L31": "closed",
+        "L32": "closed",
+        "L33": "closed",
+        "L34": "closed",
+        "L35": "closed",
+        "L36": "closed",
+        "L37": "open",
+        "L38": "closed",
+        "L39": "closed",
+        "L40": "closed",
+        "L41": "closed"
+      },
+      "renewable_curtailment": {
+        "wind_mw": 0.0,
+        "solar_mw": 0.0
+      },
+      "constraints_check": {
+        "power_balance": true,
+        "voltage_ok": true,
+        "line_loading_ok": true
+      },
+      "expected_cost": 4035.93,
+      "metadata": {
+        "mode": "demo",
+        "total_load": 266.27,
+        "renewable_output": 102.65,
+        "net_load": 171.6081
+      }
+    },
+    "validation_result": {
+      "safety_score": 71.96,
+      "passed": false,
+      "has_violations": true,
+      "details": {
+        "voltage": {
+          "score": 100.0,
+          "violations": [],
+          "weight": 0.3
+        },
+        "line_loading": {
+          "score": 100.0,
+          "violations": [],
+          "weight": 0.25
+        },
+        "n1_security": {
+          "score": 56.52,
+          "results": [
+            {
+              "contingency_type": "line_outage",
+              "element": "L1",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L2",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L3",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L4",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L5",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L6",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L7",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L8",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L9",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L10",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L11",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L12",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L13",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L14",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L15",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L16",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L17",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L18",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L19",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L20",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L21",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L22",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L23",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L24",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L25",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L26",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L27",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L28",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L29",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L30",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L31",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L32",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L33",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L34",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L35",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L36",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L38",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L39",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L40",
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "line_outage",
+              "element": "L41",
+              "violation": true,
+              "severity": "high"
+            },
+            {
+              "contingency_type": "generator_outage",
+              "element": "G1",
+              "lost_output_mw": 40.98,
+              "remaining_capacity_mw": 152.76,
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "generator_outage",
+              "element": "G2",
+              "lost_output_mw": 31.19,
+              "remaining_capacity_mw": 142.97,
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "generator_outage",
+              "element": "G5",
+              "lost_output_mw": 8.9,
+              "remaining_capacity_mw": 170.68,
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "generator_outage",
+              "element": "G4",
+              "lost_output_mw": 14.86,
+              "remaining_capacity_mw": 151.64000000000001,
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "generator_outage",
+              "element": "G3",
+              "lost_output_mw": 11.29,
+              "remaining_capacity_mw": 153.07,
+              "violation": false,
+              "severity": "low"
+            },
+            {
+              "contingency_type": "generator_outage",
+              "element": "G6",
+              "lost_output_mw": 36.0,
+              "remaining_capacity_mw": 187.78,
+              "violation": false,
+              "severity": "low"
+            }
+          ],
+          "weight": 0.3
+        },
+        "frequency": {
+          "score": 0.0,
+          "details": {
+            "total_supply_mw": 245.87,
+            "total_demand_mw": 274.26,
+            "power_imbalance_mw": -28.39,
+            "imbalance_pct": 10.35,
+            "estimated_freq_deviation_hz": 1.035,
+            "stable": false
+          },
+          "weight": 0.15
+        }
+      }
+    },
+    "safety_score": 71.96,
+    "is_success": false,
+    "weight": 1.0,
+    "usage_count": 0,
+    "timestamp": 1781621906.2536607
+  }
+]

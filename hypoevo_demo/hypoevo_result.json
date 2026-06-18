@@ -1,0 +1,51 @@
+{
+  "evolved_hypothesis": {
+    "id": "H1-E",
+    "title": "H1进化版：引入衬底解耦缓冲层 + 等离激元介导配对机制的二维Janus TMDs室温超导",
+    "framework": "BCS + 等离激元介导配对 + 衬底工程",
+    "evolution_log": [
+      "采纳反方意见：用hBN/石墨烯缓冲层解耦衬底，恢复自由悬浮应变能力",
+      "采纳反方意见：补充等离激元贡献，修正Tc估算（从纯BCS λ=2.0→联合机制λ'=2.8）",
+      "采纳正方补充：引用最新Nature Comm 2025关于hBN缓冲层实现>8%应变的实验",
+      "CDW竞争问题：通过载流子掺杂调控，在CDW量子临界点附近寻求最大Tc"
+    ],
+    "refined_prediction": "在hBN/MoSSe/hBN范德华异质结中，通过压电应变器实现8%面内压缩应变，同时激发声学等离激元参与配对。联合Eliashberg+等离激元框架预测Tc~310K。CDW竞争序通过门压调控载流子浓度至~10¹⁴ cm⁻²来压制。",
+    "testability": "改进后可验证性评级：7.5/10"
+  },
+  "review": {
+    "role": "reviewer",
+    "scores": {
+      "H1": {
+        "novelty": 9.0,
+        "feasibility": 5.5,
+        "impact": 9.5,
+        "total": 8.0
+      },
+      "H2": {
+        "novelty": 6.5,
+        "feasibility": 8.5,
+        "impact": 8.0,
+        "total": 7.7
+      },
+      "H3": {
+        "novelty": 8.0,
+        "feasibility": 6.0,
+        "impact": 7.0,
+        "total": 7.0
+      }
+    },
+    "ranking": [
+      "H1",
+      "H2",
+      "H3"
+    ],
+    "verdict": "H1创新性最高，但可行性需加强——建议补充衬底工程方案解决应变瓶颈。H2可行性最强但创新性不足，可考虑作为保底验证方向。H3实验难度大(稀释制冷+高质量器件)，适合有经验的实验组。综合推荐：以H1为主攻，H2为并行验证。"
+  },
+  "memory_stats": {
+    "total": 5,
+    "successes": 3,
+    "failures": 2,
+    "dead_ends_avoided": 2,
+    "reusable_methods": 0
+  }
+}

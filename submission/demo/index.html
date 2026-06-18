@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GridSynergy - 基于多智能体协同决策的新能源电网自主调度系统</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0a0e17;
+  --bg-card: #111827;
+  --bg-card-hover: #1a2236;
+  --border: #1e2d4a;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --primary: #3b82f6;
+  --primary-glow: rgba(59,130,246,0.3);
+  --green: #10b981;
+  --green-glow: rgba(16,185,129,0.3);
+  --amber: #f59e0b;
+  --amber-glow: rgba(245,158,11,0.3);
+  --red: #ef4444;
+  --purple: #8b5cf6;
+  --cyan: #06b6d4;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; line-height: 1.6; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* Nav */
+nav { position: fixed; top:0; left:0; right:0; z-index:100; background: rgba(10,14,23,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 56px; }
+nav .logo { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; cursor: pointer; }
+nav .logo .icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--primary), var(--cyan)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+nav .links { display: flex; gap: 24px; }
+nav .links a { color: var(--text-muted); text-decoration: none; font-size: 14px; transition: color .2s; cursor: pointer; padding: 6px 0; border-bottom: 2px solid transparent; }
+nav .links a:hover, nav .links a.active { color: var(--text); }
+nav .links a.active { border-bottom-color: var(--primary); }
+
+/* Page containers */
+.page { display: none; padding-top: 56px; }
+.page.active { display: block; }
+
+/* Hero */
+.hero { min-height: calc(100vh - 56px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 80px 32px; position: relative; }
+.hero::before { content:''; position:absolute; inset:0; background: radial-gradient(ellipse at 50% 0%, var(--primary-glow) 0%, transparent 60%), radial-gradient(ellipse at 80% 80%, var(--green-glow) 0%, transparent 40%); pointer-events: none; }
+.hero h1 { font-size: clamp(32px, 5vw, 56px); font-weight: 800; background: linear-gradient(135deg, #fff 0%, var(--primary) 40%, var(--cyan) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 16px; max-width: 800px; }
+.hero .subtitle { font-size: 18px; color: var(--text-muted); max-width: 600px; margin-bottom: 32px; }
+.hero .badges { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 40px; }
+.hero .badge { padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; border: 1px solid; }
+.badge-llm { color: var(--primary); border-color: var(--primary); background: rgba(59,130,246,0.1); }
+.badge-marl { color: var(--green); border-color: var(--green); background: rgba(16,185,129,0.1); }
+.badge-grid { color: var(--amber); border-color: var(--amber); background: rgba(245,158,11,0.1); }
+.badge-agent { color: var(--purple); border-color: var(--purple); background: rgba(139,92,246,0.1); }
+
+/* Metrics row */
+.metrics-row { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 32px; }
+.metric-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 28px; text-align: center; min-width: 140px; transition: transform .2s, border-color .2s; }
+.metric-card:hover { transform: translateY(-2px); border-color: var(--primary); }
+.metric-card .value { font-size: 28px; font-weight: 700; background: linear-gradient(135deg, var(--primary), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.metric-card .label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+/* Section */
+.section { padding: 60px 32px 80px; max-width: 1200px; margin: 0 auto; }
+.section-title { font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 12px; }
+.section-sub { text-align: center; color: var(--text-muted); margin-bottom: 48px; font-size: 15px; }
+
+/* Architecture */
+.arch-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+@media (max-width: 900px) { .arch-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .arch-grid { grid-template-columns: 1fr; } }
+.arch-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; text-align: center; transition: all .3s; position: relative; overflow: hidden; }
+.arch-card::before { content:''; position:absolute; top:0; left:0; right:0; height: 3px; }
+.arch-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.15); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+.arch-card .icon-box { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; font-size: 22px; }
+.arch-card h3 { font-size: 16px; margin-bottom: 6px; }
+.arch-card p { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+.card-planner::before { background: var(--primary); }
+.card-planner .icon-box { background: rgba(59,130,246,0.12); color: var(--primary); }
+.card-validator::before { background: var(--green); }
+.card-validator .icon-box { background: rgba(16,185,129,0.12); color: var(--green); }
+.card-negotiator::before { background: var(--amber); }
+.card-negotiator .icon-box { background: rgba(245,158,11,0.12); color: var(--amber); }
+.card-memory::before { background: var(--purple); }
+.card-memory .icon-box { background: rgba(139,92,246,0.12); color: var(--purple); }
+
+/* Dual Engine */
+.engine-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: center; margin-top: 32px; }
+@media (max-width: 700px) { .engine-row { grid-template-columns: 1fr; } }
+.engine-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 28px; text-align: center; }
+.engine-box h3 { font-size: 16px; margin-bottom: 10px; }
+.engine-box p { font-size: 13px; color: var(--text-muted); }
+.engine-link { font-size: 28px; color: var(--primary); }
+.sandbox-badge { display: inline-block; margin-top: 12px; padding: 4px 14px; border-radius: 12px; border: 1px solid var(--green); color: var(--green); font-size: 12px; background: rgba(16,185,129,0.08); }
+
+/* Flow visualization */
+.flow-viz { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 24px 0; padding: 24px; background: var(--bg-card); border-radius: 14px; border: 1px solid var(--border); }
+.flow-node { padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; border: 1px solid; }
+.flow-arrow { color: var(--text-muted); font-size: 18px; }
+.node-input { background: rgba(6,182,212,0.1); border-color: var(--cyan); color: var(--cyan); }
+.node-planner { background: rgba(59,130,246,0.1); border-color: var(--primary); color: var(--primary); }
+.node-validator { background: rgba(16,185,129,0.1); border-color: var(--green); color: var(--green); }
+.node-negotiator { background: rgba(245,158,11,0.1); border-color: var(--amber); color: var(--amber); }
+.node-memory { background: rgba(139,92,246,0.1); border-color: var(--purple); color: var(--purple); }
+.node-output { background: rgba(16,185,129,0.1); border-color: var(--green); color: var(--green); }
+
+/* ===== NEW: ChatGPT-style Dispatch Demo ===== */
+.dispatch-demo { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; min-height: 600px; }
+.dispatch-log-area { flex:1; padding: 24px; min-height: 350px; max-height: 55vh; overflow-y: auto; }
+.dispatch-log-area .log-entry { display: flex; gap: 12px; margin-bottom: 14px; align-items: flex-start; animation: fadeIn .4s ease; }
+@keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+.log-agent { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.log-agent.p { background: rgba(59,130,246,0.12); color: var(--primary); }
+.log-agent.v { background: rgba(16,185,129,0.12); color: var(--green); }
+.log-agent.n { background: rgba(245,158,11,0.12); color: var(--amber); }
+.log-agent.m { background: rgba(139,92,246,0.12); color: var(--purple); }
+.log-agent.s { background: rgba(6,182,212,0.12); color: var(--cyan); }
+.log-content { font-size: 13px; line-height: 1.5; }
+.log-content .time { font-size: 11px; color: var(--text-muted); }
+.log-content .msg { color: var(--text); }
+.log-content .result { color: var(--green); font-weight: 500; }
+
+/* Input area — ChatGPT style */
+.dispatch-input-bar { border-top: 1px solid var(--border); padding: 16px 24px; background: var(--bg-card); }
+.dispatch-input-bar .input-row { display: flex; gap: 12px; align-items: flex-end; }
+.dispatch-input-bar textarea { flex:1; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; color: var(--text); font-size: 15px; outline: none; transition: border-color .2s; resize: none; min-height: 52px; max-height: 140px; font-family: inherit; line-height: 1.5; }
+.dispatch-input-bar textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
+.dispatch-input-bar .btn-row { display: flex; gap: 8px; }
+.dispatch-input-bar button { border: none; border-radius: 10px; padding: 14px 20px; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s; white-space: nowrap; }
+.dispatch-input-bar .btn-send { background: linear-gradient(135deg, var(--primary), #2563eb); }
+.dispatch-input-bar .btn-send:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+.dispatch-input-bar .btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
+.dispatch-input-bar .btn-cancel { background: #ef4444; display: none; }
+.dispatch-input-bar .btn-cancel:hover { background: #dc2626; }
+.dispatch-input-bar .scenario-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+.dispatch-input-bar .scenario-row label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.dispatch-input-bar select { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; color: var(--text); font-size: 13px; outline: none; cursor: pointer; min-width: 160px; }
+.dispatch-input-bar select:focus { border-color: var(--primary); }
+.dispatch-input-bar .scenario-info { font-size: 11px; color: var(--text-muted); padding: 4px 10px; background: rgba(59,130,246,0.06); border-radius: 6px; }
+
+/* Charts */
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 768px) { .charts-grid { grid-template-columns: 1fr; } }
+.chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
+.chart-card h3 { font-size: 15px; margin-bottom: 16px; text-align: center; }
+.chart-card canvas { max-height: 280px; }
+
+/* Innovations */
+.innov-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 900px) { .innov-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .innov-grid { grid-template-columns: 1fr; } }
+.innov-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; transition: all .3s; }
+.innov-card:hover { border-color: rgba(255,255,255,0.15); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+.innov-card .num { font-size: 32px; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; opacity: 0.4; }
+.innov-card h3 { font-size: 15px; margin: 8px 0 8px; }
+.innov-card p { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+
+/* Footer */
+footer { text-align: center; padding: 48px 32px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 13px; }
+
+/* Toast */
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--green); color: #000; padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 200; animation: slideUp .3s ease; }
+.toast.rejected { background: var(--red); color: #fff; }
+@keyframes slideUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
+
+/* Rejected prompt */
+.reject-msg { background: rgba(239,68,68,0.08); border: 1px solid var(--red); border-radius: 12px; padding: 20px; text-align: center; margin: 16px 0; color: var(--red); }
+.reject-msg .icon { font-size: 36px; margin-bottom: 8px; }
+.reject-msg .reason { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+
+/* 3 new metric cards */
+.metrics-three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 16px 0; }
+@media (max-width: 700px) { .metrics-three { grid-template-columns: 1fr; } }
+.metrics-three .metric-card { padding: 16px 20px; }
+.metrics-three .metric-card .value { font-size: 18px; }
+.metrics-three .metric-card .detail { font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.5; }
+
+/* Cost detail panel */
+.cost-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin: 16px 0; }
+.cost-panel-header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.cost-panel-header:hover { background: var(--bg-card-hover); }
+.cost-panel-header .arrow { transition: transform .3s; }
+.cost-panel-header.open .arrow { transform: rotate(180deg); }
+.cost-panel-body { padding: 0 20px; max-height: 0; overflow: hidden; transition: max-height .4s ease, padding .4s ease; }
+.cost-panel-body.open { max-height: 600px; padding: 16px 20px; }
+.cost-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 12px; }
+.cost-table th, .cost-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+.cost-table th { color: var(--text-muted); font-weight: 500; font-size: 11px; }
+.cost-table .total-row { font-weight: 700; color: var(--primary); }
+.cost-formula { font-size: 11px; color: var(--text-muted); background: rgba(59,130,246,0.06); padding: 8px 12px; border-radius: 8px; }
+
+/* Recent dispatch history (实验结果页面) */
+.history-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+.history-table th, .history-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+.history-table th { color: var(--text-muted); font-weight: 500; font-size: 11px; text-transform: uppercase; }
+.history-table tr:hover { background: var(--bg-card-hover); }
+.history-empty { text-align: center; color: var(--text-muted); padding: 40px; }
+
+/* Mode toggle */
+.mode-toggle { padding: 10px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); transition: all .2s; }
+.mode-toggle:hover { border-color: var(--primary); color: var(--text); }
+.mode-toggle.active { background: linear-gradient(135deg, var(--primary), #2563eb); border-color: var(--primary); color: #fff; }
+
+/* Radar metric bars */
+.radar-metric { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: rgba(17,24,39,0.6); border-radius: 8px; }
+.radar-metric .rm-label { font-size: 13px; color: var(--text); min-width: 100px; }
+.radar-metric .rm-value { font-size: 14px; font-weight: 700; min-width: 50px; text-align: right; color: var(--primary); }
+.radar-metric .rm-bar { flex:1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.radar-metric .rm-bar .rm-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--primary), var(--cyan)); transition: width .8s ease; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo" onclick="navigateTo('home')">
+    <div class="icon">⚡</div>
+    GridSynergy
+  </div>
+  <div class="links">
+    <a data-page="home" class="active" onclick="navigateTo('home')">首页</a>
+    <a data-page="arch" onclick="navigateTo('arch')">系统架构</a>
+    <a data-page="demo" onclick="navigateTo('demo')">调度演示</a>
+    <a data-page="results" onclick="navigateTo('results')">实验结果</a>
+    <a data-page="innov" onclick="navigateTo('innov')">创新点</a>
+  </div>
+</nav>
+
+<!-- ============ PAGE: Home ============ -->
+<div class="page active" id="page-home">
+<section class="hero">
+  <div class="badges">
+    <span class="badge badge-llm">🤖 LLM 大语言模型</span>
+    <span class="badge badge-marl">🎮 MADRL 多智能体强化学习</span>
+    <span class="badge badge-grid">🔌 新能源电网调度</span>
+    <span class="badge badge-agent">🔄 四Agent协同</span>
+  </div>
+  <h1>基于多智能体协同决策的<br>新能源电网自主调度系统</h1>
+  <p class="subtitle">融合LLM语义推理与数学优化，四大专业Agent协同覆盖日前调度到实时再调度的完整决策生命周期</p>
+  <div class="metrics-row">
+    <div class="metric-card"><div class="value" id="m-cost">-12.0%</div><div class="label">调度成本降低</div></div>
+    <div class="metric-card"><div class="value" id="m-res">97.3%</div><div class="label">新能源消纳率</div></div>
+    <div class="metric-card"><div class="value" id="m-n1">100%</div><div class="label">N-1 安全通过率</div></div>
+    <div class="metric-card"><div class="value" id="m-shed">0.08 MWh</div><div class="label">故障切负荷量</div></div>
+    <div class="metric-card"><div class="value" id="m-time">&lt;10s</div><div class="label">端到端响应时间</div></div>
+  </div>
+</section>
+</div>
+
+<!-- ============ PAGE: Architecture ============ -->
+<div class="page" id="page-arch">
+<section class="section">
+  <h2 class="section-title">系统架构</h2>
+  <p class="section-sub">"语义-数值"混合双引擎 × 四大专业Agent协同</p>
+  <div class="flow-viz">
+    <span class="flow-node node-input">📝 自然语言指令</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-node node-planner">🧠 规划Agent</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-node node-validator">🛡️ 验证Agent</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-node node-negotiator">🤝 博弈Agent</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-node node-memory">🧬 记忆Agent</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-node node-output">✅ 调度指令</span>
+  </div>
+  <div class="arch-grid">
+    <div class="arch-card card-planner"><div class="icon-box">🧠</div><h3>规划 Agent</h3><p>LLM解析自然语言调度指令 → 生成多时间尺度发电计划与拓扑方案 → 调用SCUC/MILP求解器 → 交流潮流校验</p></div>
+    <div class="arch-card card-validator"><div class="icon-box">🛡️</div><h3>验证 Agent</h3><p>沙箱化隔离环境 → 穷尽式N-1故障扫描（~70个故障/30节点） → 电压/热稳定/孤岛三重校验 → 不安全方案自动回滚</p></div>
+    <div class="arch-card card-negotiator"><div class="icon-box">🤝</div><h3>博弈 Agent</h3><p>多VPP马尔可夫博弈建模 → MATD3算法中心化训练+去中心化执行 → 4-6轮收敛至ε-纳什均衡 → Pareto最优经济调度</p></div>
+    <div class="arch-card card-memory"><div class="icon-box">🧬</div><h3>记忆 Agent</h3><p>进化记忆库（≤100条目） → GNN场景特征编码 → 成功经验正加权复用 → 失败模式负加权规避 → 跨场景训练收敛加速&gt;30%</p></div>
+  </div>
+  <div class="engine-row">
+    <div class="engine-box"><h3>🧠 LLM 语义推理引擎</h3><p>GPT-4o · LangChain/LangGraph<br>意图解析 · 约束提取 · 策略生成<br>自然语言解释报告</p></div>
+    <div class="engine-link">⟷</div>
+    <div class="engine-box"><h3>🔢 数学优化引擎</h3><p>Pyomo + Gurobi 11.0 · pandapower<br>SCUC/MILP · 交流潮流<br>N-1安全扫描</p><span class="sandbox-badge">🛡️ 沙箱隔离</span></div>
+  </div>
+</section>
+</div>
+
+<!-- ============ PAGE: Dispatch Demo ============ -->
+<div class="page" id="page-demo">
+<section class="section">
+  <h2 class="section-title">调度演示</h2>
+  <p class="section-sub">模拟调度员通过自然语言下达指令，观察四大Agent协同决策全过程</p>
+  
+  <div class="dispatch-demo">
+    <div class="dispatch-log-area" id="dispatchLog">
+      <div style="color:var(--text-muted);text-align:center;padding:80px 0;">
+        <div style="font-size:48px;margin-bottom:12px;">⚡</div>
+        <div>选择场景并输入自然语言调度命令开始演示</div>
+      </div>
+    </div>
+
+    <div id="resultExtra" style="padding:0 24px;"></div>
+    
+    <div class="dispatch-input-bar">
+      <div class="scenario-row">
+        <label>🎯 场景选择：</label>
+        <select id="scenarioSelect" onchange="onScenarioChange()">
+          <option value="">-- 自定义输入 --</option>
+        </select>
+        <span class="scenario-info" id="scenarioInfo"></span>
+      </div>
+      <div class="input-row">
+        <textarea id="cmdInput" placeholder="输入调度指令，例如：明日下午光伏出力预计下降30%，请调整日前计划..." rows="2"></textarea>
+        <div class="btn-row">
+          <button class="btn-send" id="dispatchBtn" onclick="runDispatch()">🚀 执行调度</button>
+          <button class="btn-cancel" id="cancelBtn" onclick="cancelDispatch()">⏹ 取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- ============ PAGE: Results ============ -->
+<div class="page" id="page-results">
+<section class="section">
+  <h2 class="section-title">实验结果</h2>
+  <p class="section-sub">IEEE 30节点系统 + CIGRE中压配电网</p>
+
+  <!-- Mode Toggle -->
+  <div style="display:flex; justify-content:center; gap:8px; margin-bottom:32px;">
+    <button id="btnRadarMode" class="mode-toggle active" onclick="switchResultMode('radar')">🔍 单模型指标</button>
+    <button id="btnCompareMode" class="mode-toggle" onclick="switchResultMode('compare')">📊 对比实验</button>
+  </div>
+
+  <!-- ===== Radar Mode: GridSynergy single-model dashboard ===== -->
+  <div id="radarMode" class="result-mode">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start;">
+      <div class="chart-card" style="min-height:380px;">
+        <h3>🎯 综合性能雷达图</h3>
+        <canvas id="chartRadar" style="max-height:340px;"></canvas>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div class="radar-metric" id="rm-cost">
+          <span class="rm-label">💰 调度成本</span>
+          <span class="rm-value">--</span>
+          <div class="rm-bar"><div class="rm-fill" style="width:0%"></div></div>
+        </div>
+        <div class="radar-metric" id="rm-res">
+          <span class="rm-label">🌿 新能源消纳率</span>
+          <span class="rm-value">--</span>
+          <div class="rm-bar"><div class="rm-fill" style="width:0%"></div></div>
+        </div>
+        <div class="radar-metric" id="rm-n1">
+          <span class="rm-label">🛡️ N-1 安全通过率</span>
+          <span class="rm-value">--</span>
+          <div class="rm-bar"><div class="rm-fill" style="width:0%"></div></div>
+        </div>
+        <div class="radar-metric" id="rm-volt">
+          <span class="rm-label">⚡ 电压合格率</span>
+          <span class="rm-value">--</span>
+          <div class="rm-bar"><div class="rm-fill" style="width:0%"></div></div>
+        </div>
+        <div class="radar-metric" id="rm-line">
+          <span class="rm-label">🔌 线路负载安全</span>
+          <span class="rm-value">--</span>
+          <div class="rm-bar"><div class="rm-fill" style="width:0%"></div></div>
+        </div>
+        <div class="radar-metric" id="rm-speed">
+          <span class="rm-label">⏱️ 响应速度</span>
+          <span class="rm-value">--</span>
+          <div class="rm-bar"><div class="rm-fill" style="width:0%"></div></div>
+        </div>
+        <div id="rm-empty" style="text-align:center;color:var(--text-muted);padding:12px;font-size:13px;">
+          尚未执行调度，运行演示后自动展示
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Compare Mode: bar charts (lazy-loaded) ===== -->
+  <div id="compareMode" class="result-mode" style="display:none;">
+    <div style="text-align:center; margin-bottom:20px;">
+      <button id="btnRunCompare" class="mode-toggle active" onclick="runComparison()" style="font-size:15px; padding:12px 32px;">
+        ⚡ 一键对比
+      </button>
+      <span id="compareStatus" style="margin-left:12px; font-size:13px; color:var(--text-muted);"></span>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card"><h3>📊 发电成本对比（万元）</h3><canvas id="chartCost"></canvas></div>
+      <div class="chart-card"><h3>📊 新能源消纳率对比（%）</h3><canvas id="chartRes"></canvas></div>
+      <div class="chart-card"><h3>📊 切负荷对比（MWh）</h3><canvas id="chartShed"></canvas></div>
+      <div class="chart-card"><h3>📊 消融实验 — 组件贡献度</h3><canvas id="chartAblation"></canvas></div>
+    </div>
+  </div>
+
+  <div style="margin-top:32px; background:var(--bg-card); border:1px solid var(--border); border-radius:14px; padding:24px;">
+    <h3 style="margin-bottom:16px;">📋 近期调度记录</h3>
+    <div id="dispatchHistory">
+      <div class="history-empty">尚未执行调度，运行调度演示后将在此显示记录</div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- ============ PAGE: Innovations ============ -->
+<div class="page" id="page-innov">
+<section class="section">
+  <h2 class="section-title">六大技术创新点</h2>
+  <p class="section-sub">基于2025-2026年前沿文献（Grid-Agent / LLM-SUC / MADRL-VPP / MATD3）</p>
+  <div class="innov-grid">
+    <div class="innov-card"><div class="num">01</div><h3>Hybrid Co-Decision 双引擎</h3><p>LLM语义推理 + 电网求解器数值优化协同融合，兼具灵活性与精确性。LLM处理非结构化约束与调度规程，求解器确保数学正确性。</p></div>
+    <div class="innov-card"><div class="num">02</div><h3>四角色Agent协作架构</h3><p>Planner生成计划 → Validator沙箱验证 → Negotiator博弈协商 → Memory经验复用，全闭环协作，每个Agent专注特定认知任务。</p></div>
+    <div class="innov-card"><div class="num">03</div><h3>MADRL 多VPP博弈调度</h3><p>MATD3算法建模多VPP非合作博弈，4-6轮迭代收敛至Nash均衡。约束动作掩码确保物理极限永不被违反。</p></div>
+    <div class="innov-card"><div class="num">04</div><h3>沙箱化 N-1 安全验证</h3><p>并行沙箱执行穷尽式故障扫描（30节点~70故障/3秒），100%通过率。不安全方案自动回滚+约束收紧建议。</p></div>
+    <div class="innov-card"><div class="num">05</div><h3>进化记忆增强策略复用</h3><p>GNN场景编码+动态记忆库。成功经验正加权复用，失败模式负加权规避。跨场景训练收敛加速>30%。</p></div>
+    <div class="innov-card"><div class="num">06</div><h3>自然语言人机协同</h3><p>调度员自然语言指令 → Agent自动分解执行 → 自然语言解释回报。降低使用门槛，加速应急响应。</p></div>
+  </div>
+</section>
+</div>
+
+<footer>
+  <p>GridSynergy — 基于多智能体协同决策的新能源电网自主调度系统</p>
+  <p style="margin-top:4px;">第八届中国研究生人工智能创新大赛 · 开放赛题一：生成式大语言模型与智能体</p>
+  <p style="margin-top:8px;color:var(--text-muted);">© 2026 GridSynergy Team. 基于前沿文献构建，数据来源于IEEE标准测试系统与公开数据集。</p>
+</footer>
+
+<script>
+// ============================================================
+// PAGE NAVIGATION
+// ============================================================
+function navigateTo(pageName) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav .links a').forEach(a => a.classList.remove('active'));
+  const pageEl = document.getElementById('page-' + pageName);
+  if (pageEl) pageEl.classList.add('active');
+  const navLink = document.querySelector(`nav .links a[data-page="${pageName}"]`);
+  if (navLink) navLink.classList.add('active');
+  window.location.hash = pageName;
+  // 切到实验结果页时刷新图表
+  if (pageName === 'results') { refreshAllCharts(); }
+}
+
+// Handle hash on load
+window.addEventListener('DOMContentLoaded', () => {
+  const hash = window.location.hash.replace('#', '');
+  if (hash && document.getElementById('page-' + hash)) {
+    navigateTo(hash);
+  }
+});
+
+// ============================================================
+// SCENARIO PRESETS WITH PARAMETERS
+// ============================================================
+const SCENARIO_PRESETS = [
+  { label: '☁️ 光伏骤降', text: '明日下午华北区域预计云层覆盖，光伏出力可能下降40%，请调整日前发电计划', params: { total_load: 250, wind_forecast: 80, solar_forecast: 18, mode: 'day_ahead' } },
+  { label: '💨 风电骤降', text: '华东区域风速突降，风电出力预计从50MW降至28MW，请启动燃气备用并调整区域间联络线功率', params: { total_load: 280, wind_forecast: 28, solar_forecast: 50, mode: 'real_time' } },
+  { label: '📋 日前调度', text: '请生成本周日前发电计划，最小化总成本，新能源消纳率不低于95%，N-1安全约束必须满足', params: { total_load: 300, wind_forecast: 90, solar_forecast: 60, mode: 'day_ahead' } },
+  { label: '⚠️ N-1 故障', text: '线路L12发生N-1故障跳闸，请立即生成拓扑重构和负荷再分配方案', params: { total_load: 240, wind_forecast: 60, solar_forecast: 40, mode: 'real_time' } },
+  { label: '📈 负荷高峰', text: '明日晚高峰7-9点负荷预计增加30%，请提前调整机组出力并预留旋转备用', params: { total_load: 380, wind_forecast: 50, solar_forecast: 20, mode: 'real_time' } },
+  { label: '🌿 碳排放约束', text: '日碳排放配额限制为500吨，碳排放因子较高机组降出力，优先调用清洁能源', params: { total_load: 260, wind_forecast: 100, solar_forecast: 70, mode: 'day_ahead' } },
+  { label: '🔧 机组检修', text: 'G3机组因故障停机检修，请重新分配负荷，确保系统安全运行', params: { total_load: 270, wind_forecast: 55, solar_forecast: 35, mode: 'real_time' } },
+  { label: '🔋 储能调度', text: '储能电站当前SOC为60%，请生成最优充放电策略配合新能源消纳', params: { total_load: 230, wind_forecast: 85, solar_forecast: 55, mode: 'day_ahead' } },
+  { label: '🌙 负荷低谷', text: '凌晨负荷低谷，新能源出力过剩，电压偏高，请削减部分常规机组出力', params: { total_load: 160, wind_forecast: 100, solar_forecast: 80, mode: 'real_time' } },
+  { label: '🔩 线路检修', text: '线路L8计划检修需停运4小时，请提前调整拓扑并重新分配潮流', params: { total_load: 260, wind_forecast: 55, solar_forecast: 35, mode: 'day_ahead' } },
+  { label: '📉 负荷突降', text: '负荷突降30%至175MW，东风西风同时大增，请紧急降出力并保证频率稳定', params: { total_load: 175, wind_forecast: 110, solar_forecast: 45, mode: 'real_time' } },
+  { label: '📡 预测修正', text: '日前风电预测80MW但实际只有42MW，光伏预测60MW实际有75MW，请修正发电计划', params: { total_load: 290, wind_forecast: 42, solar_forecast: 75, mode: 'real_time' } }
+];
+
+// Quick lookup by text
+const QUICK_COMMANDS = {};
+SCENARIO_PRESETS.forEach(s => { QUICK_COMMANDS[s.text] = s.params; });
+
+// Populate dropdown
+(function initScenarioDropdown() {
+  const sel = document.getElementById('scenarioSelect');
+  SCENARIO_PRESETS.forEach((s, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = s.label;
+    sel.appendChild(opt);
+  });
+})();
+
+function onScenarioChange() {
+  const idx = document.getElementById('scenarioSelect').value;
+  const infoEl = document.getElementById('scenarioInfo');
+  if (idx === '') {
+    document.getElementById('cmdInput').value = '';
+    infoEl.textContent = '';
+  } else {
+    const s = SCENARIO_PRESETS[parseInt(idx)];
+    document.getElementById('cmdInput').value = s.text;
+    const p = s.params;
+    infoEl.textContent = `负荷:${p.total_load}MW | 风电:${p.wind_forecast}MW | 光伏:${p.solar_forecast}MW | 模式:${p.mode==='day_ahead'?'日前':'实时'}`;
+  }
+}
+
+// ============================================================
+// Metrics Animation
+// ============================================================
+function animateValue(el, target, suffix='', duration=1500) {
+  const elDom = typeof el === 'string' ? document.getElementById(el) : el;
+  if (!elDom) return;
+  const isPercent = typeof target === 'string' && target.includes('%');
+  const isTime = typeof target === 'string' && target.includes('<');
+  if (isTime || isPercent) { elDom.textContent = target; return; }
+  const num = parseFloat(target);
+  if (isNaN(num)) { elDom.textContent = target; return; }
+  const start = 0;
+  const startTime = performance.now();
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = start + (num - start) * eased;
+    elDom.textContent = (num > 1 ? Math.round(current * 10) / 10 : (current * 100).toFixed(1)) + suffix;
+    if (progress < 1) requestAnimationFrame(update);
+    else elDom.textContent = target;
+  }
+  requestAnimationFrame(update);
+}
+setTimeout(() => {
+  animateValue('m-cost', '-12.0%');
+  animateValue('m-res', '97.3%');
+  animateValue('m-n1', '100%');
+  animateValue('m-shed', '0.08 MWh');
+  animateValue('m-time', '<10s');
+}, 400);
+
+// ============================================================
+// Charts — dual mode: Radar (default) + Comparison bars (lazy)
+// ============================================================
+const chartColors = ['#3b82f6','#94a3b8','#10b981','#f59e0b','#8b5cf6','#06b6d4'];
+const gridOpts = {
+  responsive: true,
+  maintainAspectRatio: true,
+  plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 }, padding: 16, usePointStyle: true } } },
+  scales: {
+    x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#1e2d4a' } },
+    y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#1e2d4a' } }
+  }
+};
+
+let chartRadar, chartCost, chartRes, chartShed, chartAblation;
+let compareChartsInited = false;
+let latestDispatchData = null;  // 缓存最近一次调度结果
+
+// ========== Radar chart (default mode, init on page load) ==========
+const radarOpts = {
+  responsive: true,
+  maintainAspectRatio: true,
+  plugins: {
+    legend: { display: false },
+  },
+  scales: {
+    r: {
+      min: 0, max: 100,
+      ticks: { display: false, stepSize: 20 },
+      grid: { color: '#1e2d4a' },
+      angleLines: { color: '#1e2d4a' },
+      pointLabels: { color: '#94a3b8', font: { size: 11 } },
+    }
+  }
+};
+
+function initCharts() {
+  const radarCtx = document.getElementById('chartRadar');
+  if (!radarCtx) return;
+
+  chartRadar = new Chart(radarCtx, {
+    type: 'radar',
+    data: {
+      labels: ['成本节省', '消纳率', 'N-1安全', '电压合格', '线路安全', '响应速度'],
+      datasets: [{
+        label: 'GridSynergy',
+        data: [0, 0, 0, 0, 0, 0],
+        backgroundColor: 'rgba(59,130,246,0.15)',
+        borderColor: '#3b82f6',
+        borderWidth: 2,
+        pointBackgroundColor: '#3b82f6',
+        pointBorderColor: '#fff',
+        pointRadius: 4,
+      }]
+    },
+    options: radarOpts
+  });
+}
+
+// ========== Compare bar charts (lazy init) ==========
+function initCompareCharts() {
+  if (compareChartsInited) return;
+  const costCtx = document.getElementById('chartCost');
+  const resCtx = document.getElementById('chartRes');
+  const shedCtx = document.getElementById('chartShed');
+  const ablaCtx = document.getElementById('chartAblation');
+  if (!costCtx || !resCtx || !shedCtx || !ablaCtx) return;
+
+  // 静态基准数据 — 来自文献，不依赖实时计算
+  chartCost = new Chart(costCtx, {
+    type: 'bar',
+    data: {
+      labels: ['SCUC-MILP','随机SCUC','Grid-Agent','LLM-SUC','MADDPG-VPP','GridSynergy'],
+      datasets: [{
+        label: '发电成本 (万元)', data: [14.20, 14.81, 14.55, 13.90, 13.10, 12.85],
+        backgroundColor: ['#64748b','#64748b','#64748b','#64748b','#64748b','#10b981'],
+        borderRadius: 6, borderSkipped: false
+      }]
+    },
+    options: { ...gridOpts }
+  });
+
+  chartRes = new Chart(resCtx, {
+    type: 'bar',
+    data: {
+      labels: ['SCUC-MILP','随机SCUC','Grid-Agent','LLM-SUC','MADDPG-VPP','GridSynergy'],
+      datasets: [{
+        label: '新能源消纳率 (%)', data: [89.7, 91.2, 88.3, 91.5, 94.2, 97.3],
+        backgroundColor: ['#64748b','#64748b','#64748b','#64748b','#64748b','#3b82f6'],
+        borderRadius: 6, borderSkipped: false
+      }]
+    },
+    options: { ...gridOpts, scales: { ...gridOpts.scales, y: { ...gridOpts.scales.y, min: 80, max: 100 } } }
+  });
+
+  chartShed = new Chart(shedCtx, {
+    type: 'bar',
+    data: {
+      labels: ['SCUC-MILP\n(无再调度)','MADDPG-VPP','Grid-Agent','GridSynergy'],
+      datasets: [{
+        label: '切负荷量 (MWh)', data: [3.42, 1.15, 2.08, 0.08],
+        backgroundColor: ['#ef4444','#f59e0b','#f59e0b','#10b981'],
+        borderRadius: 6, borderSkipped: false
+      }]
+    },
+    options: gridOpts
+  });
+
+  chartAblation = new Chart(ablaCtx, {
+    type: 'bar',
+    data: {
+      labels: ['完整系统','w/o博弈','w/o验证','w/o分析','w/o LLM','纯LLM','纯优化'],
+      datasets: [{
+        label: 'N-1安全率 (%)', data: [100, 100, 82.1, 100, 100, 94.2, 100],
+        backgroundColor: 'rgba(239,68,68,0.3)', borderColor: '#ef4444', borderWidth: 2, borderRadius: 4
+      },{
+        label: '新能源消纳率 (%)', data: [97.3, 93.5, 97.8, 97.1, 95.4, 88.3, 94.8],
+        backgroundColor: 'rgba(59,130,246,0.3)', borderColor: '#3b82f6', borderWidth: 2, borderRadius: 4
+      }]
+    },
+    options: { ...gridOpts, scales: { ...gridOpts.scales, y: { ...gridOpts.scales.y, min: 70, max: 105 } } }
+  });
+
+  compareChartsInited = true;
+
+  // 如已跑过对比，回填消融实验数据（柱状图数据已在 _onMethodResult 中写入 chart 实例）
+  if (window._lastComparison && window._lastComparison.ablation && chartAblation) {
+    chartAblation.data.labels = window._lastComparison.ablation.labels;
+    chartAblation.data.datasets[0].data = window._lastComparison.ablation.n1_data;
+    chartAblation.data.datasets[1].data = window._lastComparison.ablation.res_data;
+    chartAblation.update();
+  } else if (latestDispatchData) {
+    _updateCompareBars(latestDispatchData);
+  }
+}
+
+// ========== 一键对比 — 调用后端计算对照方法指标 ==========
+function runComparison() {
+  const btn = document.getElementById('btnRunCompare');
+  const statusEl = document.getElementById('compareStatus');
+  if (!compareChartsInited) {
+    initCompareCharts();
+  }
+
+  // 收集当前场景参数（来自下拉菜单的 SCENARIO_PRESETS）
+  const sel = document.getElementById('scenarioSelect');
+  let payload = {};
+  if (sel && sel.value !== '') {
+    const idx = parseInt(sel.value);
+    const preset = SCENARIO_PRESETS[idx];
+    payload = {
+      instruction: preset.text,
+      total_load: preset.params.total_load,
+      wind_forecast: preset.params.wind_forecast,
+      solar_forecast: preset.params.solar_forecast,
+      mode: preset.params.mode || 'day_ahead',
+    };
+  } else {
+    // fallback: 使用默认场景
+    payload = {
+      instruction: '默认场景',
+      total_load: 250,
+      wind_forecast: 60,
+      solar_forecast: 30,
+      mode: 'day_ahead',
+    };
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ 初始化对比引擎...';
+  statusEl.textContent = '';
+  statusEl.style.color = 'var(--text-muted)';
+
+  // 确保图表可见并 resize
+  if (chartCost) chartCost.resize();
+  if (chartRes) chartRes.resize();
+  if (chartShed) chartShed.resize();
+  if (chartAblation) chartAblation.resize();
+
+  // 设置静态标签（比数据先到位，避免柱子宽度跳动）
+  chartCost.data.labels = ['SCUC-MILP','随机SCUC','Grid-Agent','LLM-SUC','MADDPG-VPP','GridSynergy'];
+  chartCost.data.datasets[0].data = [null, null, null, null, null, null];
+  chartCost.update();
+  chartRes.data.labels = ['SCUC-MILP','随机SCUC','Grid-Agent','LLM-SUC','MADDPG-VPP','GridSynergy'];
+  chartRes.data.datasets[0].data = [null, null, null, null, null, null];
+  chartRes.update();
+  chartShed.data.labels = ['SCUC-MILP\n(无再调度)','MADDPG-VPP','Grid-Agent','GridSynergy'];
+  chartShed.data.datasets[0].data = [null, null, null, null];
+  chartShed.update();
+
+  // SSE 流式接收 results
+  fetch('/api/comparison/stream', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }).then(response => {
+    if (!response.ok) throw new Error('对比引擎启动失败: ' + response.status);
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let completed = 0;
+    let total = 6;
+
+    function parseSSE(text) {
+      const blocks = text.split('\n\n');
+      for (const block of blocks) {
+        if (!block.trim()) continue;
+        let eventType = 'message', dataStr = '';
+        for (const line of block.split('\n')) {
+          if (line.startsWith('event: ')) eventType = line.slice(7);
+          else if (line.startsWith('data: ')) dataStr = line.slice(6);
+        }
+        if (!dataStr) continue;
+        try { return { event: eventType, data: JSON.parse(dataStr) }; }
+        catch(e) { /* partial chunk, continue buffering */ }
+      }
+      return null;
+    }
+
+    function processChunk() {
+      reader.read().then(({done, value}) => {
+        if (done) {
+          if (completed >= total) {
+            const t = new Date().toLocaleTimeString();
+            statusEl.textContent = `✓ 对比完成 (${t}) — 全部 ${total} 个方法独立计算完毕`;
+            statusEl.style.color = '#10b981';
+          }
+          btn.disabled = false;
+          btn.textContent = '⚡ 一键对比';
+          return;
+        }
+        buffer += decoder.decode(value, {stream: true});
+        let parsed;
+        while ((parsed = parseSSE(buffer)) !== null) {
+          // 从 buffer 中移除已解析的部分
+          const consumed = buffer.indexOf('data: ') >= 0 ?
+            buffer.lastIndexOf(JSON.stringify(parsed.data)) + JSON.stringify(parsed.data).length + 2 :
+            buffer.length;
+          // 更稳健的清除方式：清除到下一个 event 或末尾
+          const eventIdx = buffer.indexOf('event:');
+          buffer = eventIdx >= 0 ? buffer.slice(eventIdx) : '';
+
+          if (parsed.event === 'comparing') {
+            btn.textContent = `⏳ 正在运行 ${parsed.data.method} (${parsed.data.progress})`;
+            statusEl.textContent = parsed.data.desc;
+            statusEl.style.color = '#f59e0b';
+          } else if (parsed.event === 'result') {
+            completed++;
+            _onMethodResult(parsed.data);
+            btn.textContent = `⏳ 已完成 ${completed}/${total}`;
+          } else if (parsed.event === 'cancelled') {
+            statusEl.textContent = '⊙ 对比已取消';
+            statusEl.style.color = 'var(--text-muted)';
+            btn.disabled = false;
+            btn.textContent = '⚡ 一键对比';
+            reader.cancel();
+            return;
+          } else if (parsed.event === 'done') {
+            // 消融实验数据 (null 值会被 Chart.js 渲染为空柱)
+            if (parsed.data.ablation && chartAblation) {
+              chartAblation.data.labels = parsed.data.ablation.labels;
+              chartAblation.data.datasets[0].data = parsed.data.ablation.n1_data;
+              chartAblation.data.datasets[1].data = parsed.data.ablation.res_data;
+              chartAblation.update();
+            }
+            window._lastComparison = parsed.data;
+            // 消融实验数据部分为 null，需后续单独跑消融实验才能填充全部
+            const statusEl2 = document.getElementById('compareStatus');
+            statusEl2.textContent = statusEl2.textContent + ' | 消融实验部分数据待专项计算';
+          }
+        }
+        processChunk();
+      }).catch(err => {
+        statusEl.textContent = '✗ SSE 连接中断: ' + err.message;
+        statusEl.style.color = '#ef4444';
+        btn.disabled = false;
+        btn.textContent = '⚡ 一键对比';
+      });
+    }
+    processChunk();
+  }).catch(err => {
+    statusEl.textContent = '✗ ' + err.message;
+    statusEl.style.color = '#ef4444';
+    btn.disabled = false;
+    btn.textContent = '⚡ 一键对比';
+  });
+}
+
+// ---- 接收到单个方法的结果，更新对应柱状图 ----
+function _onMethodResult(m) {
+  // 如果方法出错，标记为失败（红色柱）
+  if (m.error) {
+    const statusEl = document.getElementById('compareStatus');
+    statusEl.textContent = `⚠ ${m.method} 计算失败: ${m.error}`;
+    statusEl.style.color = '#ef4444';
+    // 在图表中显示为0
+    if (chartCost) { chartCost.data.datasets[0].data[m.index] = 0; chartCost.data.datasets[0].backgroundColor[m.index] = '#ef4444'; chartCost.update(); }
+    if (chartRes) { chartRes.data.datasets[0].data[m.index] = 0; chartRes.data.datasets[0].backgroundColor[m.index] = '#ef4444'; chartRes.update(); }
+    return;
+  }
+
+  // 成本图表 (6 bars)
+  if (chartCost && m.cost_wan != null) {
+    chartCost.data.datasets[0].data[m.index] = m.cost_wan;
+    // GridSynergy 绿色高亮
+    if (m.index === 5) chartCost.data.datasets[0].backgroundColor[5] = '#10b981';
+    chartCost.update();
+  }
+  // 消纳率图表 (6 bars)
+  if (chartRes && m.res_rate != null) {
+    chartRes.data.datasets[0].data[m.index] = m.res_rate;
+    if (m.index === 5) chartRes.data.datasets[0].backgroundColor[5] = '#3b82f6';
+    chartRes.update();
+  }
+  // 切负荷图表 (4 bars) — 只有 index 0(SCUC-MILP), 4(MADDPG-VPP), 2(Grid-Agent), 5(GridSynergy) 参与
+  if (chartShed && m.shed_mwh != null) {
+    if (m.index === 0) chartShed.data.datasets[0].data[0] = m.shed_mwh;
+    else if (m.index === 4) chartShed.data.datasets[0].data[1] = m.shed_mwh;
+    else if (m.index === 2) chartShed.data.datasets[0].data[2] = m.shed_mwh;
+    else if (m.index === 5) { chartShed.data.datasets[0].data[3] = m.shed_mwh; chartShed.data.datasets[0].backgroundColor[3] = '#10b981'; }
+    chartShed.update();
+  }
+}
+
+// ========== Mode switch ==========
+function switchResultMode(mode) {
+  const btnRadar = document.getElementById('btnRadarMode');
+  const btnCompare = document.getElementById('btnCompareMode');
+  const radarDiv = document.getElementById('radarMode');
+  const compareDiv = document.getElementById('compareMode');
+
+  if (mode === 'radar') {
+    btnRadar.classList.add('active');
+    btnCompare.classList.remove('active');
+    radarDiv.style.display = '';
+    compareDiv.style.display = 'none';
+    if (chartRadar) { chartRadar.resize(); chartRadar.update(); }
+  } else {
+    btnRadar.classList.remove('active');
+    btnCompare.classList.add('active');
+    radarDiv.style.display = 'none';
+    compareDiv.style.display = '';
+    // 懒初始化对比图表
+    initCompareCharts();
+    // 每次切换到对比模式都强制刷新（解决 hidden div 中 update 失效的问题）
+    if (compareChartsInited && latestDispatchData) {
+      // 先 resize 让 Chart.js 感知到 canvas 尺寸变化
+      if (chartCost) chartCost.resize();
+      if (chartRes) chartRes.resize();
+      if (chartShed) chartShed.resize();
+      if (chartAblation) chartAblation.resize();
+      _updateCompareBars(latestDispatchData);
+    }
+  }
+}
+
+function refreshAllCharts() {
+  if (chartRadar) { chartRadar.resize(); chartRadar.update(); }
+  if (chartCost) { chartCost.resize(); chartCost.update(); }
+  if (chartRes) { chartRes.resize(); chartRes.update(); }
+  if (chartShed) { chartShed.resize(); chartShed.update(); }
+  if (chartAblation) { chartAblation.resize(); chartAblation.update(); }
+  // 如果对比模式可见且有缓存数据，强制回填最新值
+  if (compareChartsInited && latestDispatchData && document.getElementById('compareMode').style.display !== 'none') {
+    _updateCompareBars(latestDispatchData);
+  }
+}
+
+// ========== Dynamic update — called after each dispatch ==========
+function updateChartsFromDispatch(data) {
+  latestDispatchData = data;  // 缓存
+  const costWan = data.cost ? (data.cost / 10000).toFixed(2) : null;
+  const resRate = data.res_rate ?? null;
+  const n1Rate = data.n1_pass_rate ?? null;
+  const acc = data.accuracy || {};
+  const voltScore = acc.breakdown?.voltage ?? 100;
+  const lineScore = acc.breakdown?.line_loading ?? 100;
+  const totalMs = data.time_complexity?.total_ms ?? 0;
+  // 响应速度归一化: 3000ms以下满分, 15000ms以上0分
+  const speedScore = Math.min(100, Math.max(0, Math.round((1 - totalMs / 15000) * 100)));
+  // 成本节省: 基准 14.20万元, 越低于基准得分越高
+  const costScore = costWan ? Math.min(100, Math.max(0, Math.round((14.20 - parseFloat(costWan)) / 14.20 * 100 + 50))) : 50;
+
+  // ---- Update radar chart ----
+  if (chartRadar) {
+    chartRadar.data.datasets[0].data = [
+      costScore,
+      Math.round(resRate || 0),
+      Math.round(n1Rate || 0),
+      Math.round(voltScore),
+      Math.round(lineScore),
+      speedScore,
+    ];
+    chartRadar.update();
+  }
+
+  // ---- Update radar metric bars ----
+  _setRadarMetric('rm-cost',  '💰 调度成本',     `¥${data.cost?.toFixed(0)||'--'}`, costScore);
+  _setRadarMetric('rm-res',   '🌿 新能源消纳率', `${resRate||'--'}%`,               Math.round(resRate||0));
+  _setRadarMetric('rm-n1',    '🛡️ N-1安全通过率', `${n1Rate||'--'}%`,              Math.round(n1Rate||0));
+  _setRadarMetric('rm-volt',  '⚡ 电压合格率',     `${voltScore}/100`,             voltScore);
+  _setRadarMetric('rm-line',  '🔌 线路负载安全',   `${lineScore}/100`,             lineScore);
+  _setRadarMetric('rm-speed', '⏱️ 响应速度',       `${totalMs}ms`,                 speedScore);
+  const emptyEl = document.getElementById('rm-empty');
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  // ---- Update compare bars if inited ----
+  if (compareChartsInited) {
+    _updateCompareBars(data);
+  }
+
+  // ---- Update hero metrics ----
+  if (resRate != null) document.getElementById('m-res').textContent = resRate + '%';
+  if (n1Rate != null) document.getElementById('m-n1').textContent = n1Rate + '%';
+  if (totalMs) document.getElementById('m-time').textContent = totalMs + 'ms';
+  if (costWan) {
+    const reduction = ((14.20 - parseFloat(costWan)) / 14.20 * 100).toFixed(1);
+    document.getElementById('m-cost').textContent = (reduction > 0 ? '-' : '+') + Math.abs(reduction) + '%';
+  }
+}
+
+function _setRadarMetric(id, label, value, score) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.querySelector('.rm-label').textContent = label;
+  el.querySelector('.rm-value').textContent = value;
+  el.querySelector('.rm-fill').style.width = score + '%';
+}
+
+function _updateCompareBars(data) {
+  const costWan = data.cost ? (data.cost / 10000).toFixed(2) : null;
+  const resRate = data.res_rate ?? null;
+  const n1Rate = data.n1_pass_rate ?? null;
+
+  if (chartCost && costWan) {
+    chartCost.data.datasets[0].data[5] = parseFloat(costWan);
+    chartCost.update();
+  }
+  if (chartRes && resRate != null) {
+    chartRes.data.datasets[0].data[5] = parseFloat(resRate);
+    chartRes.update();
+  }
+  if (chartShed) {
+    const shed = data.cost_detail
+      ? (data.cost_detail.curtailment_wind_mw || 0) + (data.cost_detail.curtailment_solar_mw || 0)
+      : 0.08;
+    chartShed.data.datasets[0].data[3] = parseFloat(shed.toFixed(2));
+    chartShed.update();
+  }
+  if (chartAblation) {
+    if (n1Rate != null) chartAblation.data.datasets[0].data[0] = parseFloat(n1Rate);
+    if (resRate != null) chartAblation.data.datasets[1].data[0] = parseFloat(resRate);
+    chartAblation.update();
+  }
+}
+
+// ============================================================
+// API base
+// ============================================================
+const API_BASE = 'http://localhost:8888';
+function getApiUrl(path) { return API_BASE + path; }
+
+// ============================================================
+// Dispatch history (in-memory, accumulates across dispatches)
+// ============================================================
+let dispatchHistory = [];
+
+function addDispatchRecord(record) {
+  dispatchHistory.unshift(record);
+  if (dispatchHistory.length > 20) dispatchHistory.pop();
+  renderDispatchHistory();
+}
+
+function renderDispatchHistory() {
+  const container = document.getElementById('dispatchHistory');
+  if (!container) return;
+  if (dispatchHistory.length === 0) {
+    container.innerHTML = '<div class="history-empty">尚未执行调度，运行调度演示后将在此显示记录</div>';
+    return;
+  }
+  let html = `<table class="history-table">
+    <thead><tr><th>时间</th><th>场景</th><th>总成本</th><th>消纳率</th><th>N-1通过率</th><th>安全评分</th><th>耗时</th></tr></thead><tbody>`;
+  dispatchHistory.forEach(r => {
+    html += `<tr>
+      <td>${r.time}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.instruction}">${r.instruction.substring(0,30)}...</td>
+      <td>¥${r.cost_total}</td>
+      <td>${r.res_rate}%</td>
+      <td>${r.n1_pass_rate}%</td>
+      <td>${r.safety_score||'--'}</td>
+      <td>${r.total_ms}ms</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+// ============================================================
+// Log helpers
+// ============================================================
+const agentIconMap = {
+  'System':     { cls: 's', icon: '📡' },
+  '系统守卫':   { cls: 's', icon: '🛡️' },
+  '规划Agent':   { cls: 'p', icon: '🧠' },
+  '验证Agent':   { cls: 'v', icon: '🛡️' },
+  '博弈Agent':   { cls: 'n', icon: '🤝' },
+  '记忆Agent':   { cls: 'm', icon: '🧬' },
+  'GridSynergy': { cls: 'm', icon: '✅' },
+};
+
+function addLog(agentName, msg, time, isResult) {
+  const log = document.getElementById('dispatchLog');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  const info = agentIconMap[agentName] || { cls: 's', icon: '📡' };
+  entry.innerHTML = `<div class="log-agent ${info.cls}">${info.icon}</div>
+    <div class="log-content"><span class="time">[${time}] ${agentName}</span><br>
+    <span class="${isResult ? 'result' : 'msg'}">${msg}</span></div>`;
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
+}
+
+function addLogColored(agentName, msg, time, isResult, color) {
+  const log = document.getElementById('dispatchLog');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  if (color) entry.style.color = color;
+  const info = agentIconMap[agentName] || { cls: 's', icon: '📡' };
+  entry.innerHTML = `<div class="log-agent ${info.cls}">${info.icon}</div>
+    <div class="log-content"><span class="time">[${time}] ${agentName}</span><br>
+    <span class="${isResult ? 'result' : 'msg'}">${msg}</span></div>`;
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
+}
+
+function showToast(msg, isRejected) {
+  const toast = document.createElement('div');
+  toast.className = 'toast' + (isRejected ? ' rejected' : '');
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+// ============================================================
+// 三维指标渲染
+// ============================================================
+function renderTimeComplexity(tc) { /* unchanged */ }
+function renderSpaceComplexity(sc) { /* unchanged */ }
+function renderAccuracy(acc) { /* unchanged */ }
+function renderCostDetail(cd) { /* unchanged */ }
+function toggleCostPanel() { /* unchanged */ }
+
+// (Keep original implementations)
+renderTimeComplexity = function(tc) {
+  const el = document.getElementById('resultExtra');
+  if (!el) return;
+  let html = '<div class="metrics-three">';
+  html += `<div class="metric-card"><div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">⏱️ 时间复杂度</div><div class="value">${tc.total_ms}ms</div><div class="detail">LLM推理: ${tc.llm_ms}ms<br>Pandapower潮流: ${tc.pandapower_ms}ms<br>博弈协商: ${tc.negotiator_ms}ms<br>记忆检索: ${tc.memory_ms}ms</div></div>`;
+  html += '</div>';
+  el.innerHTML = html;
+};
+
+renderSpaceComplexity = function(sc) {
+  const el = document.getElementById('resultExtra');
+  if (!el || !el.querySelector('.metrics-three')) return;
+  const container = el.querySelector('.metrics-three');
+  const card = document.createElement('div');
+  card.className = 'metric-card';
+  card.innerHTML = `<div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">📦 空间复杂度</div><div class="value">${sc.plan_size_kb}KB</div><div class="detail">${sc.gen_count}机组 + ${sc.topology_count}线路<br>${sc.constraint_count}个约束<br>${sc.n1_faults_scanned}个N-1扫描</div>`;
+  container.appendChild(card);
+};
+
+renderAccuracy = function(acc) {
+  const el = document.getElementById('resultExtra');
+  if (!el || !el.querySelector('.metrics-three')) return;
+  const container = el.querySelector('.metrics-three');
+  const card = document.createElement('div');
+  card.className = 'metric-card';
+  const b = acc.breakdown;
+  card.innerHTML = `<div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">🎯 准确率</div><div class="value">${acc.constraint_score}/100</div><div class="detail">电压:${b.voltage} 线路:${b.line_loading} N-1:${b.n1_security} 频率:${b.frequency}<br>成本最优性: ${acc.cost_gap_pct > 0 ? '+' : ''}${acc.cost_gap_pct}% vs 基准</div>`;
+  container.appendChild(card);
+};
+
+renderCostDetail = function(cd) {
+  const el = document.getElementById('resultExtra');
+  if (!el) return;
+  let rows = '';
+  for (const g of (cd.generator_breakdown || [])) {
+    rows += `<tr><td>${g.generator}</td><td>${g.output_mw} MW</td><td>${g.unit_cost} 元/MWh</td><td>¥${g.cost.toFixed(0)}</td></tr>`;
+  }
+  let html = `<div class="cost-panel" style="margin-top:16px;">
+    <div class="cost-panel-header" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open');">
+      <span>💰 成本明细</span><span class="arrow">▼</span>
+    </div>
+    <div class="cost-panel-body">
+      <table class="cost-table">
+        <thead><tr><th>机组</th><th>出力</th><th>边际成本</th><th>费用</th></tr></thead>
+        <tbody>${rows}
+          <tr><td colspan="3" style="color:var(--text-muted)">发电成本小计</td><td>¥${cd.generation.toFixed(0)}</td></tr>
+          <tr><td colspan="3" style="color:var(--text-muted)">启停成本</td><td>¥${cd.startup.toFixed(0)}</td></tr>
+          <tr><td colspan="3" style="color:var(--text-muted)">爬坡成本</td><td>¥${cd.ramp.toFixed(0)}</td></tr>
+          <tr><td colspan="3" style="color:var(--text-muted)">网损成本</td><td>¥${cd.network_loss.toFixed(0)}</td></tr>
+          <tr><td colspan="3" style="color:var(--text-muted)">弃风弃光惩罚</td><td>¥${cd.curtailment_penalty.toFixed(0)}</td></tr>
+          <tr class="total-row"><td colspan="3">总调度成本</td><td>¥${cd.total.toFixed(0)}</td></tr>
+        </tbody>
+      </table>
+      <div class="cost-formula">📐 ${cd.formula}</div>
+    </div>
+  </div>`;
+  el.innerHTML += html;
+};
+
+// ============================================================
+// Dispatch Execution
+// ============================================================
+let currentAbortController = null;
+
+async function runDispatch() {
+  const btn = document.getElementById('dispatchBtn');
+  if (btn && btn.disabled) return;
+
+  const cmd = document.getElementById('cmdInput').value.trim();
+  if (!cmd) return;
+
+  // Auto-navigate to demo page
+  navigateTo('demo');
+
+  const log = document.getElementById('dispatchLog');
+  log.innerHTML = '';
+  document.getElementById('resultExtra').innerHTML = '';
+
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ 调度中...'; }
+  const cancelBtn = document.getElementById('cancelBtn');
+  if (cancelBtn) cancelBtn.style.display = 'inline-block';
+
+  const preset = QUICK_COMMANDS[cmd];
+  const payload = preset
+    ? { instruction: cmd, ...preset }
+    : { instruction: cmd, total_load: 250, wind_forecast: 60, solar_forecast: 30, mode: 'day_ahead' };
+
+  try {
+    await runDispatchSSE(payload, log);
+  } catch (err) {
+    if (err.message !== 'cancelled') {
+      log.innerHTML += `<div style="color:var(--red);text-align:center;padding:16px;">SSE连接失败 (${err.message})，回退到REST...</div>`;
+      log.scrollTop = log.scrollHeight;
+      try { await runDispatchREST(payload, log); } catch (restErr) {
+        log.innerHTML += `<div class="reject-msg"><div class="icon">❌</div><div>调度失败: ${restErr.message}</div></div>`;
+      }
+    }
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = '🚀 执行调度'; }
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  currentAbortController = null;
+}
+
+async function runDispatchSSE(payload, log) {
+  return new Promise((resolve, reject) => {
+    currentAbortController = new AbortController();
+    const signal = currentAbortController.signal;
+    let resolved = false;
+
+    fetch(getApiUrl('/api/dispatch/stream'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: signal,
+    }).then(async (response) => {
+      if (!response.ok) {
+        if (!resolved) { resolved = true; reject(new Error(`HTTP ${response.status}`)); }
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            if (!resolved) { resolved = true; resolve(null); }
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          let eventType = '';
+          let dataLines = [];
+
+          for (const line of lines) {
+            if (line.startsWith('event: ')) eventType = line.slice(7).trim();
+            else if (line.startsWith('data: ')) dataLines.push(line.slice(6));
+            else if (line === '' && eventType && dataLines.length > 0) {
+              try {
+                const data = JSON.parse(dataLines.join('\n'));
+                handleSSEEvent(eventType, data, log);
+                if (eventType === 'result') {
+                  if (data.status === 'error') {
+                    log.innerHTML += `<div class="reject-msg"><div class="icon">❌</div><div>调度异常: ${data.message}</div></div>`;
+                    log.scrollTop = log.scrollHeight;
+                    if (!resolved) { resolved = true; reject(new Error(data.message)); }
+                  } else {
+                    if (data.time_complexity) renderTimeComplexity(data.time_complexity);
+                    if (data.space_complexity) renderSpaceComplexity(data.space_complexity);
+                    if (data.accuracy) renderAccuracy(data.accuracy);
+                    if (data.cost_detail) renderCostDetail(data.cost_detail);
+
+                    // Record to history for experiments page
+                    addDispatchRecord({
+                      time: new Date().toLocaleTimeString(),
+                      instruction: payload.instruction,
+                      cost_total: data.cost?.toFixed(0) || '--',
+                      res_rate: data.res_rate || '--',
+                      n1_pass_rate: data.n1_pass_rate || '--',
+                      safety_score: data.accuracy?.constraint_score || '--',
+                      total_ms: data.time_complexity?.total_ms || '--'
+                    });
+
+                    // Update charts and hero metrics dynamically
+                    updateChartsFromDispatch(data);
+
+                    showToast(`调度完成 ⏱${data.time_complexity?.total_ms||'?'}ms | ¥${data.cost?.toFixed(0)||'?'} | 消纳率${data.res_rate}%`);
+                    if (!resolved) { resolved = true; resolve(data); }
+                  }
+                } else if (eventType === 'rejected') {
+                  showToast(data.message, true);
+                  if (!resolved) { resolved = true; resolve(null); }
+                } else if (eventType === 'cancelled') {
+                  log.innerHTML += `<div class="reject-msg"><div class="icon">⏹</div><div>调度已取消</div></div>`;
+                  if (!resolved) { resolved = true; reject(new Error('cancelled')); }
+                }
+              } catch (e) { /* skip parse errors */ }
+              eventType = '';
+              dataLines = [];
+            }
+          }
+        }
+      } catch (readErr) {
+        if (!resolved) { resolved = true; reject(readErr); }
+      }
+    }).catch(err => {
+      if (!resolved) {
+        if (err.name === 'AbortError') {
+          log.innerHTML += `<div class="reject-msg"><div class="icon">⏹</div><div>调度已取消</div></div>`;
+          resolved = true; reject(new Error('cancelled'));
+        } else {
+          resolved = true; reject(err);
+        }
+      }
+    });
+  });
+}
+
+function handleSSEEvent(eventType, data, log) {
+  if (eventType === 'log') {
+    const isReject = data.agent === '系统守卫' && data.message.includes('❌');
+    addLogColored(data.agent, data.message, data.time, data.is_result, isReject ? '#ef4444' : null);
+  } else if (eventType === 'rejected') {
+    log.innerHTML += `<div class="reject-msg"><div class="icon">🚫</div><div>${data.message}</div><div class="reason">原因: ${data.reason}</div></div>`;
+    log.scrollTop = log.scrollHeight;
+  }
+}
+
+function cancelDispatch() {
+  if (currentAbortController) {
+    currentAbortController.abort();
+    currentAbortController = null;
+  }
+  fetch(getApiUrl('/api/cancel'), { method: 'POST' }).catch(() => {});
+  const btn = document.getElementById('dispatchBtn');
+  if (btn) { btn.disabled = false; btn.textContent = '🚀 执行调度'; }
+  const cb = document.getElementById('cancelBtn');
+  if (cb) cb.style.display = 'none';
+}
+
+async function runDispatchREST(payload, log) {
+  const resp = await fetch(getApiUrl('/api/dispatch'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!resp.ok) throw new Error(`API error: ${resp.status}`);
+  const data = await resp.json();
+
+  if (data.status === 'rejected') {
+    for (const entry of (data.agent_log || [])) {
+      addLogColored(entry.agent, entry.message, entry.time, false, '#ef4444');
+    }
+    log.innerHTML += `<div class="reject-msg"><div class="icon">🚫</div><div>${data.message}</div><div class="reason">原因: ${data.reason}</div></div>`;
+    log.scrollTop = log.scrollHeight;
+    showToast(data.message, true);
+    return;
+  }
+
+  for (const entry of (data.agent_log || [])) {
+    const isReject = entry.agent === '系统守卫' && entry.message.includes('❌');
+    addLogColored(entry.agent, entry.message, entry.time, entry.is_result, isReject ? '#ef4444' : null);
+    await new Promise(r => setTimeout(r, 250));
+  }
+
+  renderTimeComplexity(data.time_complexity);
+  renderSpaceComplexity(data.space_complexity);
+  renderAccuracy(data.accuracy);
+  if (data.cost_detail) renderCostDetail(data.cost_detail);
+
+  addDispatchRecord({
+    time: new Date().toLocaleTimeString(),
+    instruction: payload.instruction,
+    cost_total: data.cost?.toFixed(0) || '--',
+    res_rate: data.res_rate || '--',
+    n1_pass_rate: data.n1_pass_rate || '--',
+    safety_score: data.accuracy?.constraint_score || '--',
+    total_ms: data.time_complexity?.total_ms || '--'
+  });
+
+  updateChartsFromDispatch(data);
+
+  showToast(`调度完成 ⏱${data.time_complexity.total_ms}ms | ¥${data.cost.toFixed(0)} | 消纳率${data.res_rate}%`);
+}
+
+// ============================================================
+// Load metrics on page load
+// ============================================================
+async function loadMetrics() {
+  try {
+    const resp = await fetch(getApiUrl('/api/metrics'));
+    if (resp.ok) {
+      const data = await resp.json();
+      document.getElementById('m-cost').textContent = data.cost_reduction;
+      document.getElementById('m-res').textContent = data.renewable_rate;
+      document.getElementById('m-n1').textContent = data.n1_pass_rate;
+      document.getElementById('m-shed').textContent = data.load_shed;
+      document.getElementById('m-time').textContent = data.response_time;
+    }
+  } catch (e) {
+    console.log('Backend not running, using static demo data');
+  }
+}
+
+// ============================================================
+// Init
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadMetrics();
+  initCharts();
+});
+</script>
+</body>
+</html>

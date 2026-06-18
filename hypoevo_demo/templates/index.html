@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HypoEvo — 科学假设自主生成系统</title>
+<style>
+  :root {
+    --bg: #0a0e17;
+    --card: #111827;
+    --border: #1f2937;
+    --accent: #22d3ee;
+    --accent2: #a78bfa;
+    --green: #34d399;
+    --yellow: #fbbf24;
+    --red: #f87171;
+    --text: #e2e8f0;
+    --text-dim: #94a3b8;
+    --terminal-bg: #0d1117;
+    --terminal-line: #c9d1d9;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .header .logo {
+    font-size: 24px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header .badge {
+    font-size: 11px;
+    background: var(--accent);
+    color: #0a0e17;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+
+  /* Main layout */
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* Left panel */
+  .sidebar {
+    width: 360px;
+    min-width: 320px;
+    border-right: 1px solid var(--border);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .card h3 {
+    font-size: 13px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+
+  /* Task cards */
+  .task-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .task-card {
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .task-card:hover { border-color: var(--accent); }
+  .task-card.active {
+    border-color: var(--accent);
+    background: rgba(34, 211, 238, 0.06);
+  }
+  .task-card .task-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .task-card .task-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  /* Custom input */
+  textarea {
+    width: 100%;
+    background: var(--terminal-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 12px;
+    font-size: 13px;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    resize: vertical;
+    min-height: 80px;
+  }
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  /* Tools list */
+  .tool-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tool-chip {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  .tool-chip.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(34, 211, 238, 0.08);
+  }
+  .tool-chip.done {
+    border-color: var(--green);
+    color: var(--green);
+    background: rgba(52, 211, 153, 0.08);
+  }
+
+  /* Button */
+  .btn-run {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #0a0e17;
+    transition: opacity 0.2s;
+  }
+  .btn-run:hover { opacity: 0.9; }
+  .btn-run:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* Right panel — Terminal */
+  .terminal-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    overflow: hidden;
+  }
+  .terminal {
+    flex: 1;
+    background: var(--terminal-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow-y: auto;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .terminal-header {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    background: var(--terminal-bg);
+    z-index: 10;
+  }
+  .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .terminal-dot.r { background: #f87171; }
+  .terminal-dot.y { background: #fbbf24; }
+  .terminal-dot.g { background: #34d399; }
+  .terminal-title {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-left: 8px;
+  }
+  .terminal-body {
+    padding: 16px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+  }
+
+  /* Terminal lines */
+  .t-line {
+    margin-bottom: 4px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .t-step {
+    margin-top: 16px;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+  }
+  .t-label {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 6px;
+  }
+  .t-label.thought { background: rgba(167, 139, 250, 0.15); color: var(--accent2); }
+  .t-label.action { background: rgba(251, 191, 36, 0.15); color: var(--yellow); }
+  .t-label.obs { background: rgba(52, 211, 153, 0.15); color: var(--green); }
+  .t-label.done { background: rgba(34, 211, 238, 0.15); color: var(--accent); }
+  .t-label.error { background: rgba(248, 113, 113, 0.15); color: var(--red); }
+  .t-prompt { color: var(--accent); }
+  .t-json { color: var(--text-dim); font-size: 12px; }
+  .t-blinking { animation: blink 0.8s infinite; }
+  @keyframes blink {
+    50% { opacity: 0.4; }
+  }
+
+  /* Status bar */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .status-dot.idle { background: var(--text-dim); }
+  .status-dot.running { background: var(--accent); animation: blink 0.8s infinite; }
+  .status-dot.done { background: var(--green); }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .main { flex-direction: column; }
+    .sidebar { width: 100%; min-width: unset; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="logo">HypoEvo</span>
+  <span class="badge">Agent Demo v2</span>
+  <span style="flex:1"></span>
+  <span style="font-size:12px;color:var(--text-dim)">基于多智能体辩论与进化记忆的科学假设自主生成系统</span>
+</div>
+
+<div class="main">
+  <!-- Left: Task selection -->
+  <div class="sidebar">
+    <div class="card">
+      <h3>📋 研究任务</h3>
+      <div class="task-grid" id="taskGrid">
+        {% for t in tasks %}
+        <div class="task-card {% if loop.first %}active{% endif %}"
+             data-id="{{ t.id }}"
+             onclick="selectTask('{{ t.id }}')">
+          <div class="task-title">{{ t.title }}</div>
+          <div class="task-desc">{{ t.steps or '自定义' }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>✏️ 任务描述</h3>
+      <textarea id="taskInput" placeholder="输入你的科学假设研究问题..."
+      >{% for t in tasks %}{% if loop.first %}{{ t.prompt }}{% endif %}{% endfor %}</textarea>
+    </div>
+
+    <div class="card">
+      <h3>🔧 可用工具</h3>
+      <div class="tool-list" id="toolList">
+        {% for tid, tinfo in tools.items() %}
+        <span class="tool-chip" data-tool="{{ tid }}">{{ tinfo.name }}</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <button class="btn-run" id="btnRun" onclick="runAgent()">
+      ▶ 启动 Agent
+    </button>
+
+    <div class="status-bar">
+      <span class="status-dot idle" id="statusDot"></span>
+      <span id="statusText">就绪</span>
+      <span style="flex:1"></span>
+      <span id="stepCount"></span>
+    </div>
+  </div>
+
+  <!-- Right: Terminal -->
+  <div class="terminal-panel">
+    <div class="terminal">
+      <div class="terminal-header">
+        <span class="terminal-dot r"></span>
+        <span class="terminal-dot y"></span>
+        <span class="terminal-dot g"></span>
+        <span class="terminal-title">HypoEvo Agent Terminal — ReAct 执行循环</span>
+      </div>
+      <div class="terminal-body" id="terminal">
+        <div class="t-line" style="color:var(--text-dim)">
+          ╔══════════════════════════════════════════╗
+        </div>
+        <div class="t-line" style="color:var(--text-dim)">
+          ║  HypoEvo Agent 执行终端                   ║
+        </div>
+        <div class="t-line" style="color:var(--text-dim)">
+          ║  模式: Demo (模拟工具数据)                  ║
+        </div>
+        <div class="t-line" style="color:var(--text-dim)">
+          ║  循环: Thought → Action → Observation    ║
+        </div>
+        <div class="t-line" style="color:var(--text-dim)">
+          ╚══════════════════════════════════════════╝
+        </div>
+        <div class="t-line" style="color:var(--text-dim);margin-top:8px">
+          👆 选择一个任务并点击「启动 Agent」
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// Task selection
+// ============================================================
+const TASKS = {{ tasks | tojson }};
+let currentTaskId = TASKS[0].id;
+
+function selectTask(id) {
+  currentTaskId = id;
+  document.querySelectorAll('.task-card').forEach(el => {
+    el.classList.toggle('active', el.dataset.id === id);
+  });
+  // Update textarea
+  const task = TASKS.find(t => t.id === id);
+  if (task) {
+    document.getElementById('taskInput').value = task.prompt || task.question || '';
+  }
+}
+
+// ============================================================
+// Agent execution
+// ============================================================
+let eventSource = null;
+
+function runAgent() {
+  const task = document.getElementById('taskInput').value.trim();
+  if (!task) { alert('请输入任务描述'); return; }
+
+  // Reset UI
+  const terminal = document.getElementById('terminal');
+  terminal.innerHTML = '';
+  appendLine(terminal, '🚀 启动 Agent...', 't-prompt');
+  appendLine(terminal, '📋 任务: ' + task.substring(0, 100) + '...', '');
+  appendLine(terminal, '', '');
+
+  // Reset tools
+  document.querySelectorAll('.tool-chip').forEach(el => {
+    el.classList.remove('active', 'done');
+  });
+
+  // Button state
+  const btn = document.getElementById('btnRun');
+  btn.disabled = true;
+  btn.textContent = '⏳ Agent 执行中...';
+
+  // Status
+  setStatus('running', '执行中...');
+
+  // Use fetch + streaming SSE (EventSource only supports GET)
+  runViaSSE(task, terminal, btn);
+}
+
+async function runViaSSE(task, terminal, btn) {
+  try {
+    const resp = await fetch('/api/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ task }),
+    });
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      let eventType = '';
+      for (const line of lines) {
+        if (line.startsWith('event: ')) {
+          eventType = line.slice(7).trim();
+        } else if (line.startsWith('data: ') && eventType) {
+          try {
+            const data = JSON.parse(line.slice(6));
+            handleEvent(eventType, data, terminal);
+          } catch(e) {}
+          eventType = '';
+        }
+      }
+    }
+  } catch(e) {
+    appendLine(terminal, '❌ 连接错误: ' + e.message, 't-label error');
+  } finally {
+    document.getElementById('btnRun').disabled = false;
+    document.getElementById('btnRun').textContent = '▶ 启动 Agent';
+    setStatus('done', '完成');
+  }
+}
+
+function handleEvent(type, data, terminal) {
+  switch(type) {
+    case 'start':
+      break;
+
+    case 'thought':
+      appendLine(terminal, '', '');
+      appendLine(terminal,
+        `┌── Step ${data.step} ──────────────────────────────────`,
+        't-json');
+      appendLine(terminal,
+        `│ 💭 Thought`, 't-label thought');
+      appendLine(terminal,
+        `│ ${data.content}`, '');
+      if (data.tool) {
+        appendLine(terminal,
+          `│ 🔧 Action: ${data.tool}`, 't-label action');
+        const paramsStr = JSON.stringify(data.params || {}, null, 0);
+        if (paramsStr !== '{}') {
+          appendLine(terminal,
+            `│   参数: ${paramsStr}`, 't-json');
+        }
+        // Highlight active tool
+        highlightTool(data.tool, 'active');
+      }
+      break;
+
+    case 'observation':
+      appendLine(terminal,
+        `│ 👁️ Observation`, 't-label obs');
+      // Pretty print JSON observation
+      try {
+        const obj = JSON.parse(data.content);
+        const summary = extractObsSummary(obj, data.tool);
+        appendLine(terminal, `│ ${summary}`, '');
+      } catch(e) {
+        appendLine(terminal, `│ ${data.content.substring(0, 200)}`, 't-json');
+      }
+      // Mark tool as done
+      if (data.tool) highlightTool(data.tool, 'done');
+      break;
+
+    case 'finish':
+      appendLine(terminal, '', '');
+      appendLine(terminal, '✅ 任务完成!', 't-label done');
+      appendLine(terminal, `   ${data.result.substring(0, 300)}`, '');
+      break;
+
+    case 'done':
+      appendLine(terminal, '', '');
+      appendLine(terminal,
+        `━━━ Agent 执行结束 (共 ${data.total_steps} 步) ━━━`,
+        't-prompt');
+      document.getElementById('stepCount').textContent =
+        `共 ${data.total_steps} 步`;
+      break;
+
+    case 'error':
+      appendLine(terminal, `❌ ${data.msg}`, 't-label error');
+      break;
+  }
+}
+
+function extractObsSummary(obj, toolName) {
+  // Extract meaningful summary from tool output
+  if (toolName === 'arxiv_search') {
+    const count = obj.count || 0;
+    const titles = (obj.results || []).map(r =>
+      `${r.authors || '?'} (${r.journal || 'arXiv'} ${r.year || ''}): ${(r.title || '').substring(0, 50)}`).join('、');
+    return `找到 ${count} 篇论文: ${titles}`;
+  }
+  if (toolName === 'materials_db_query') {
+    const r = obj.result || {};
+    return `${obj.material} ${obj.property}: ${r.value || JSON.stringify(r)}`;
+  }
+  if (toolName === 'dft_estimator') {
+    return `${obj.estimated_tc || obj.estimated_lambda || ''} (${obj.method || ''})`;
+  }
+  if (toolName === 'code_executor') {
+    return `${obj.status}: ${(obj.output || '').substring(0, 120)}`;
+  }
+  if (toolName === 'file_writer') {
+    return `${obj.message || '文件已保存'} → ${obj.file || ''}`;
+  }
+  return JSON.stringify(obj).substring(0, 150);
+}
+
+function highlightTool(toolName, state) {
+  document.querySelectorAll('.tool-chip').forEach(el => {
+    if (el.dataset.tool === toolName) {
+      el.classList.add(state);
+    }
+  });
+}
+
+function appendLine(container, text, className) {
+  const div = document.createElement('div');
+  div.className = 't-line' + (className ? ' ' + className : '');
+  div.textContent = text;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function setStatus(state, text) {
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot ' + state;
+  document.getElementById('statusText').textContent = text;
+}
+</script>
+
+</body>
+</html>

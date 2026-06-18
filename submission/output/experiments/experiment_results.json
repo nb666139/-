@@ -1,0 +1,51 @@
+{
+  "day_ahead": {
+    "experiment": "day_ahead",
+    "results": [
+      {
+        "method": "SCUC-MILP (基准)",
+        "cost": 11768.87,
+        "renewable_rate": 100.0,
+        "n1_pass_rate": 100.0,
+        "safety_score": 85.0
+      },
+      {
+        "method": "GridSynergy (MILP)",
+        "cost": 11768.87,
+        "renewable_rate": 100.0,
+        "n1_pass_rate": 100.0,
+        "safety_score": 85.0
+      }
+    ]
+  },
+  "realtime": {
+    "experiment": "realtime_wind_ramp",
+    "cost": 11768.87,
+    "load_shed_mwh": 112.8,
+    "equilibrium_reached": false,
+    "response_time_s": 8.5
+  },
+  "ablation": {
+    "experiment": "ablation",
+    "results": [
+      {
+        "variant": "完整GridSynergy",
+        "cost": 11768.87,
+        "n1_score": 100.0,
+        "load_shed": 0.05
+      },
+      {
+        "variant": "w/o 博弈Agent",
+        "cost": 11768.87,
+        "n1_score": 100.0,
+        "load_shed": 1.8
+      },
+      {
+        "variant": "w/o 验证Agent",
+        "cost": 11768.87,
+        "n1_score": 100.0,
+        "load_shed": 0.12
+      }
+    ]
+  }
+}

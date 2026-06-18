@@ -1,0 +1,69 @@
+.tech-section {
+  padding: 100px 0 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.marquee-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 15%,
+    black 85%,
+    transparent 100%
+  );
+}
+
+.marquee-track {
+  display: flex;
+  gap: 16px;
+  animation: scroll 30s linear infinite;
+  width: max-content;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.tech-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 40px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.tech-chip:hover {
+  background: rgba(0, 212, 255, 0.08);
+  border-color: rgba(0, 212, 255, 0.2);
+}
+
+.tech-icon {
+  font-size: 18px;
+}
+
+.tech-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #d1d5db;
+  letter-spacing: 0.3px;
+}
+
+@media (max-width: 768px) {
+  .tech-section {
+    padding: 60px 0 40px;
+  }
+}

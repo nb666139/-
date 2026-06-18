@@ -1,0 +1,76 @@
+.metrics-section {
+  padding: 80px 40px;
+  position: relative;
+}
+
+.metrics-grid {
+  display: flex;
+  gap: 14px;
+  flex-wrap: nowrap;
+  justify-content: center;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.metric-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 22px 20px;
+  text-align: center;
+  min-width: 0;
+  flex: 1 1 0;
+  position: relative;
+  overflow: hidden;
+  transition: transform .2s, border-color .2s;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 212, 255, 0.25);
+}
+
+.metric-glow {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  filter: blur(40px);
+  top: -20px;
+  right: -20px;
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+.metric-value {
+  font-size: clamp(24px, 3.5vw, 34px);
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin-bottom: 6px;
+  font-family: 'Inter', system-ui, sans-serif;
+  position: relative;
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.metric-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.metric-desc {
+  display: none; /* 隐藏描述，保持简洁 */
+}
+
+@media (max-width: 768px) {
+  .metrics-section { padding: 60px 16px; }
+  .metrics-grid { gap: 8px; padding: 0; }
+  .metric-card { padding: 16px 10px; }
+  .metric-value { font-size: 22px; }
+  .metric-label { font-size: 11px; }
+}
