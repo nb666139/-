@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: gridsynergy
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python web/server_lite.py
+    plan: free

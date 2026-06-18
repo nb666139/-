@@ -22,6 +22,9 @@ import numpy as np
 # 将项目根目录加入路径
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+# 静态文件目录（前端构建产物）
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+
 from agents.planner_agent import PlannerAgent
 from agents.validator_agent import ValidatorAgent
 from agents.negotiator_agent import NegotiatorAgent
@@ -142,24 +145,41 @@ class GridSynergyAPIHandler(SimpleHTTPRequestHandler):
         elif parsed.path == "/api/dispatch_history":
             self._send_json({"history": _get_history()})
         else:
-            # 静态文件服务 — 添加无缓存头，确保前端总是加载最新代码
-            path = self.translate_path(self.path)
-            if not os.path.exists(path) or os.path.isdir(path):
-                self.send_error(404, "Not Found")
-                return
+            # ---- 静态文件服务（SPA 前端） ----
+            self._serve_static(self.path)
 
-            ctype = self.guess_type(path)
+    def _serve_static(self, path):
+        """服务前端静态文件，支持 SPA 路由回退。"""
+        parsed = urlparse(path)
+        request_path = parsed.path.lstrip("/")
+        if not request_path or request_path.endswith("/"):
+            request_path = "index.html"
+
+        file_path = STATIC_DIR / request_path
+
+        if file_path.exists() and file_path.is_file():
+            ctype = self.guess_type(str(file_path))
             self.send_response(200)
             self.send_header("Content-Type", ctype)
-            self.send_header("Content-Length", str(os.path.getsize(path)))
+            self.send_header("Content-Length", str(file_path.stat().st_size))
             self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
-            self.send_header("Pragma", "no-cache")
-            self.send_header("Expires", "0")
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
-
-            with open(path, "rb") as f:
+            with open(file_path, "rb") as f:
                 self.wfile.write(f.read())
+        else:
+            # SPA 回退: 返回 index.html
+            index_path = STATIC_DIR / "index.html"
+            if index_path.exists():
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(index_path.stat().st_size))
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                with open(index_path, "rb") as f:
+                    self.wfile.write(f.read())
+            else:
+                self.send_error(404, "Not Found")
 
     def _handle_dispatch(self):
         content_length = int(self.headers.get("Content-Length", 0))
@@ -1022,10 +1042,11 @@ class GridSynergyAPIHandler(SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    port = 8888
-    server = HTTPServer(("localhost", port), GridSynergyAPIHandler)
-    print(f"GridSynergy API: http://localhost:{port}")
-    print(f"  Demo: http://localhost:{port}/demo/index.html")
+    port = int(os.environ.get("PORT", 8888))
+    host = os.environ.get("HOST", "0.0.0.0")
+    server = HTTPServer((host, port), GridSynergyAPIHandler)
+    print(f"GridSynergy API: http://{host}:{port}")
+    print(f"  Frontend: http://localhost:{port}")
     print(f"  Health: http://localhost:{port}/api/health")
     try:
         server.serve_forever()
